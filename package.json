@@ -1,0 +1,140 @@
+{
+  "name": "jest-environment-emit",
+  "version": "1.0.0",
+  "description": "Environment with unlimited test event handlers",
+  "main": "dist/extend.js",
+  "types": "dist/extend.d.ts",
+  "files": [
+    "README.md",
+    "src",
+    "dist",
+    "*.js",
+    "!**/__utils__",
+    "!**/__tests__",
+    "!**/*.test.*"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/extend.js",
+      "require": "./dist/extend.js",
+      "types": "./dist/extend.d.ts"
+    },
+    "./hooks": {
+      "import": "./dist/environment-hooks.js",
+      "require": "./dist/environment-hooks.js",
+      "types": "./dist/environment-hooks.d.ts"
+    },
+    "./jsdom": {
+      "import": "./dist/environment-jsdom.js",
+      "require": "./dist/environment-jsdom.js",
+      "types": "./dist/environment-jsdom.d.ts"
+    },
+    "./node": {
+      "import": "./dist/environment-node.js",
+      "require": "./dist/environment-node.js",
+      "types": "./dist/environment-node.d.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "engines": {
+    "node": ">=16.14.0"
+  },
+  "scripts": {
+    "prepare": "husky install || true",
+    "prepack": "tsc",
+    "build": "tsc",
+    "lint": "eslint . --fix",
+    "lint:ci": "eslint .",
+    "lint:staged": "lint-staged",
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wix-incubator/jest-environment-emit.git"
+  },
+  "keywords": [
+    "environment",
+    "jest",
+    "jest-environment",
+    "jest-circus"
+  ],
+  "author": "Yaroslav Serhieiev <yaroslavs@wix.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/wix-incubator/jest-environment-emit/issues"
+  },
+  "homepage": "https://github.com/wix-incubator/jest-environment-emit#readme",
+  "dependencies": {
+    "bunyamin": "^1.1.1",
+    "funpermaproxy": "^1.1.0",
+    "lodash.merge": "^4.6.2",
+    "node-ipc": "9.2.1",
+    "strip-ansi": "^6.0.0",
+    "tslib": "^2.5.3"
+  },
+  "peerDependencies": {
+    "@jest/environment": ">=27.2.5",
+    "@jest/types": ">=27.2.5",
+    "jest": ">=27.2.5",
+    "jest-environment-jsdom": ">=27.2.5",
+    "jest-environment-node": ">=27.2.5"
+  },
+  "peerDependenciesMeta": {
+    "@jest/environment": {
+      "optional": true
+    },
+    "@jest/types": {
+      "optional": true
+    },
+    "jest": {
+      "optional": true
+    },
+    "jest-environment-jsdom": {
+      "optional": true
+    },
+    "jest-environment-node": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^17.4.2",
+    "@commitlint/config-conventional": "^17.4.2",
+    "@jest/environment": "^29.3.1",
+    "@jest/reporters": "^29.3.1",
+    "@jest/types": "^29.3.1",
+    "@types/glob": "^8.0.0",
+    "@types/jest": "^29.2.5",
+    "@types/lodash": "^4.14.191",
+    "@types/node": "^18.11.18",
+    "@types/node-ipc": "^9.2.0",
+    "@types/rimraf": "^3.0.2",
+    "@typescript-eslint/eslint-plugin": "^6.2.0",
+    "@typescript-eslint/parser": "^6.2.0",
+    "cz-conventional-changelog": "^3.3.0",
+    "eslint": "^8.46.0",
+    "eslint-config-prettier": "^8.9.0",
+    "eslint-import-resolver-typescript": "^3.5.5",
+    "eslint-plugin-ecmascript-compat": "^3.0.0",
+    "eslint-plugin-import": "^2.28.0",
+    "eslint-plugin-jsdoc": "^46.4.5",
+    "eslint-plugin-no-only-tests": "^3.1.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "eslint-plugin-unicorn": "^48.0.1",
+    "http-server": "^14.1.1",
+    "husky": "^8.0.3",
+    "is-ci": "^3.0.1",
+    "jest": "^29.6.2",
+    "jest-environment-jsdom": "^29.6.2",
+    "jest-environment-node": "^29.6.2",
+    "lint-staged": "^13.1.0",
+    "lodash": "^4.17.21",
+    "prettier": "^3.0.0",
+    "semantic-release": "^22.0.5",
+    "ts-jest": "^29.1.1",
+    "typescript": "~5.1.0"
+  },
+  "browserslist": [
+    "node 16"
+  ]
+}
