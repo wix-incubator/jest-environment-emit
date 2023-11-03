@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-types */
-import { logger, nologger, optimizeTracing, iterateSorted } from '../utils';
+import { logger, optimizeTracing, iterateSorted } from '../utils';
 import type { ReadonlyEmitter } from './Emitter';
 
 //#region Optimized event helpers
@@ -22,8 +22,12 @@ export abstract class ReadonlyEmitterBase<Event extends { type: string }>
 
   #listenersCounter = 0;
 
-  constructor(name?: string, shouldLog = true) {
-    this._log = (shouldLog ? logger : nologger).child({ cat: `emitter`, tid: `emitter-${name}` });
+  constructor(name: string) {
+    this._log = logger.child({
+      cat: `emitter`,
+      tid: [name, {}],
+    });
+
     this._listeners.set('*', []);
   }
 

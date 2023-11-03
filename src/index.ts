@@ -7,9 +7,15 @@ import {
   onTestEnvironmentCreate,
   onTestEnvironmentSetup,
   onTestEnvironmentTeardown,
+  registerSubscription,
 } from './hooks';
 
-import type { ReadonlyAsyncEmitter, TestEnvironmentEvent, WithEmitter } from './types';
+import type {
+  EmitterSubscription,
+  ReadonlyAsyncEmitter,
+  TestEnvironmentEvent,
+  WithEmitter,
+} from './types';
 
 export * from './types';
 
@@ -56,7 +62,7 @@ export * from './types';
  */
 export function EmitterMixin<E extends JestEnvironment>(
   JestEnvironmentClass: new (...args: any[]) => E,
-): new (...args: any[]) => WithEmitter<E> {
+): EmitterMixinClass<E> {
   const compositeName = `WithEmitter(${JestEnvironmentClass.name})`;
 
   return {
@@ -69,6 +75,10 @@ export function EmitterMixin<E extends JestEnvironment>(
 
       protected get testEvents(): ReadonlyAsyncEmitter<TestEnvironmentEvent> {
         return getEmitter(this);
+      }
+
+      static subscribe(subscription: EmitterSubscription<E>): void {
+        registerSubscription(subscription);
       }
 
       async setup() {
@@ -93,10 +103,19 @@ export function EmitterMixin<E extends JestEnvironment>(
         await onTestEnvironmentTeardown(this);
       }
     },
-  }[compositeName] as unknown as new (...args: any[]) => WithEmitter<E>;
+  }[compositeName] as unknown as EmitterMixinClass<E>;
 }
+
+EmitterMixin.subscribe = registerSubscription;
+
+export type WithSubscribe<E extends JestEnvironment = JestEnvironment> = {
+  subscribe(subscription: EmitterSubscription<E>): void;
+};
+
+export type EmitterMixinClass<E extends JestEnvironment> = WithSubscribe<E> &
+  (new (...args: any[]) => WithEmitter<E>);
 
 /**
  * @inheritDoc
  */
-export default EmitterMixin;
+export default EmitterMixin as WithSubscribe & typeof EmitterMixin;

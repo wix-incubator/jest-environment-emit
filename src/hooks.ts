@@ -1,18 +1,24 @@
 import type { EnvironmentContext, JestEnvironment, JestEnvironmentConfig } from '@jest/environment';
 import type { Circus } from '@jest/types';
+import { resolveSubscription } from './callbacks';
 import { SemiAsyncEmitter } from './emitters';
-import type { TestEnvironmentEvent } from './types';
+import type {
+  EmitterSubscription,
+  EmitterSubscriptionContext,
+  TestEnvironmentEvent,
+} from './types';
 
 const emitterMap: WeakMap<object, SemiAsyncEmitter<TestEnvironmentEvent>> = new WeakMap();
 const configMap: WeakMap<object, JestEnvironmentConfig> = new WeakMap();
+const contextMap: WeakMap<object, EnvironmentContext> = new WeakMap();
+const registrationsMap: WeakMap<object, EmitterSubscription[]> = new WeakMap();
 
 export function onTestEnvironmentCreate(
   jestEnvironment: JestEnvironment,
   jestEnvironmentConfig: JestEnvironmentConfig,
   environmentContext: EnvironmentContext,
 ): void {
-  const emitter = new SemiAsyncEmitter<TestEnvironmentEvent>('environment', [
-    'test_environment_create',
+  const emitter = new SemiAsyncEmitter<TestEnvironmentEvent>('jest-environment-emit', [
     'start_describe_definition',
     'finish_describe_definition',
     'add_hook',
@@ -21,12 +27,15 @@ export function onTestEnvironmentCreate(
   ]);
 
   emitterMap.set(jestEnvironment, emitter);
-  configMap.set(jestEnvironment, jestEnvironmentConfig);
-  emitter.emit({
-    type: 'test_environment_create',
-    env: jestEnvironment,
-    context: environmentContext,
-  });
+  configMap.set(jestEnvironment, normalizeJestEnvironmentConfig(jestEnvironmentConfig));
+  contextMap.set(jestEnvironment, environmentContext);
+}
+
+/** Jest 27 legacy support */
+function normalizeJestEnvironmentConfig(jestEnvironmentConfig: JestEnvironmentConfig) {
+  return jestEnvironmentConfig.globalConfig
+    ? jestEnvironmentConfig
+    : ({ projectConfig: jestEnvironmentConfig as unknown } as JestEnvironmentConfig);
 }
 
 export async function onTestEnvironmentSetup(env: JestEnvironment): Promise<void> {
@@ -62,6 +71,12 @@ export const getEmitter = (env: JestEnvironment) => {
   return emitter;
 };
 
+export const registerSubscription = <E extends JestEnvironment>(subscription: EmitterSubscription<E>) => {
+  const callbacks = registrationsMap.get(global) ?? [];
+  callbacks.push(subscription as EmitterSubscription);
+  registrationsMap.set(global, callbacks);
+};
+
 /**
  * Get the environment configuration by the environment reference.
  */
@@ -77,21 +92,26 @@ export const getConfig = (env: JestEnvironment) => {
 };
 
 async function subscribeToEvents(env: JestEnvironment) {
-  const reporterModules = (getConfig(env)?.globalConfig?.reporters ?? []).map((r) => r[0]);
-  const reporterExports = await Promise.all(
-    reporterModules.map((m) => {
-      try {
-        return import(m);
-      } catch (error: unknown) {
-        // TODO: log this to trace
-        console.warn(`[jest-environment-emit] Failed to import reporter module "${m}"`, error);
-        return;
-      }
-    }),
+  const envConfig = getConfig(env);
+  const { projectConfig } = envConfig;
+  const testEnvironmentOptions = projectConfig.testEnvironmentOptions;
+  const staticRegistrations = registrationsMap.get(global) ?? [];
+  const configRegistrations = (testEnvironmentOptions.eventListeners ??
+    []) as EmitterSubscription[];
+  const allRegistrations = [...staticRegistrations, ...configRegistrations];
+
+  const callbacks = await Promise.all(
+    allRegistrations.map((r) => resolveSubscription(projectConfig.rootDir, r)),
   );
 
-  for (const reporterExport of reporterExports) {
-    const ReporterClass = reporterExport?.default ?? reporterExport;
-    ReporterClass?.onTestEnvironmentCreate?.(env);
+  const context = Object.freeze({
+    env,
+    testEvents: getEmitter(env),
+    context: contextMap.get(env),
+    config: envConfig,
+  }) as Readonly<EmitterSubscriptionContext>;
+
+  for (const fn of callbacks) {
+    fn(context);
   }
 }
