@@ -10,8 +10,8 @@ export class SemiAsyncEmitter<Event extends { type: string }>
   readonly #syncEvents: Set<Event['type']>;
 
   constructor(name: string, syncEvents: Event['type'][]) {
-    this.#asyncEmitter = new SerialAsyncEmitter<Event>(name, false);
-    this.#syncEmitter = new SerialSyncEmitter<Event>(name, false);
+    this.#asyncEmitter = new SerialAsyncEmitter<Event>(name);
+    this.#syncEmitter = new SerialSyncEmitter<Event>(name);
     this.#syncEvents = new Set(syncEvents);
   }
 

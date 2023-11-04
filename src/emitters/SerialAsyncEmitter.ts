@@ -23,8 +23,7 @@ export class SerialAsyncEmitter<Event extends { type: string }>
     await this._log.trace.complete(__EMIT(event), event.type, async () => {
       if (listeners) {
         for (const listener of listeners) {
-          this._log.trace(__INVOKE(listener), 'invoke');
-          await listener(event);
+          await this._log.trace.complete(__INVOKE(listener), 'invoke', () => listener(event));
         }
       }
     });

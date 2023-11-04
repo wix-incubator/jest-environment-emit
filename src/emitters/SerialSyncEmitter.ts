@@ -29,8 +29,7 @@ export class SerialSyncEmitter<Event extends { type: string }>
       this._log.trace.complete(__EMIT(event), event.type, () => {
         if (listeners) {
           for (const listener of listeners) {
-            this._log.trace(__INVOKE(listener), 'invoke');
-            listener(event);
+            this._log.trace.complete(__INVOKE(listener), 'invoke', () => listener(event));
           }
         }
       });
