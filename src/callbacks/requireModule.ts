@@ -11,7 +11,7 @@ export async function requireModule<E extends JestEnvironment = JestEnvironment>
     const result = (await import(cwdPath)) as any;
     return (result?.default ?? result) as EmitterSubscription<E>;
   } catch (error: any) {
-    logger.debug({ cat: 'import', err: error }, `Failed to resolve: ${moduleName}`);
+    logger.warn({ cat: 'import', err: error }, `Failed to resolve: ${moduleName}`);
     return null;
   }
 }

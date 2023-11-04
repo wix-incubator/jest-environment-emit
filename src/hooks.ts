@@ -71,7 +71,9 @@ export const getEmitter = (env: JestEnvironment) => {
   return emitter;
 };
 
-export const registerSubscription = <E extends JestEnvironment>(subscription: EmitterSubscription<E>) => {
+export const registerSubscription = <E extends JestEnvironment>(
+  subscription: EmitterSubscription<E>,
+) => {
   const callbacks = registrationsMap.get(global) ?? [];
   callbacks.push(subscription as EmitterSubscription);
   registrationsMap.set(global, callbacks);

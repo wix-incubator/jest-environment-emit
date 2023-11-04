@@ -1,5 +1,6 @@
-const { logger, optimizeTracing } = jest.requireActual('../logger');
-logger.logger = {
+const { bunyamin } = jest.requireActual('bunyamin');
+
+bunyamin.logger = {
   fatal: jest.fn(),
   error: jest.fn(),
   warn: jest.fn(),
@@ -8,4 +9,6 @@ logger.logger = {
   trace: jest.fn(),
 };
 
-export { logger, optimizeTracing };
+const optimizeTracing = jest.fn((f) => f);
+
+export { bunyamin as logger, optimizeTracing };

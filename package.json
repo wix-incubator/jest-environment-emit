@@ -2,8 +2,8 @@
   "name": "jest-environment-emit",
   "version": "1.0.0",
   "description": "Environment with unlimited test event handlers",
-  "main": "dist/extend.js",
-  "types": "dist/extend.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "files": [
     "README.md",
     "src",
@@ -15,24 +15,24 @@
   ],
   "exports": {
     ".": {
-      "import": "./dist/extend.js",
-      "require": "./dist/extend.js",
-      "types": "./dist/extend.d.ts"
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
     },
     "./hooks": {
-      "import": "./dist/environment-hooks.js",
-      "require": "./dist/environment-hooks.js",
-      "types": "./dist/environment-hooks.d.ts"
+      "import": "./dist/hooks.js",
+      "require": "./dist/hooks.js",
+      "types": "./dist/hooks.d.ts"
     },
     "./jsdom": {
-      "import": "./dist/environment-jsdom.js",
-      "require": "./dist/environment-jsdom.js",
-      "types": "./dist/environment-jsdom.d.ts"
+      "import": "./dist/jsdom.js",
+      "require": "./dist/jsdom.js",
+      "types": "./dist/jsdom.d.ts"
     },
     "./node": {
-      "import": "./dist/environment-node.js",
-      "require": "./dist/environment-node.js",
-      "types": "./dist/environment-node.d.ts"
+      "import": "./dist/node.js",
+      "require": "./dist/node.js",
+      "types": "./dist/node.d.ts"
     },
     "./package.json": "./package.json"
   },
@@ -65,7 +65,7 @@
   },
   "homepage": "https://github.com/wix-incubator/jest-environment-emit#readme",
   "dependencies": {
-    "bunyamin": "^1.3.0",
+    "bunyamin": "^1.4.0",
     "funpermaproxy": "^1.1.0",
     "lodash.merge": "^4.6.2",
     "node-ipc": "9.2.1",
