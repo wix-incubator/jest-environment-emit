@@ -30,7 +30,8 @@ describe('EmitterMixin', () => {
     }
 
     const Environment = JestEnvironmentEmit(OriginalEnvironment as any);
-    expect(JestEnvironmentEmit.subscribe).toBe(Environment.subscribe);
+    const globalListener = jest.fn();
+    JestEnvironmentEmit.subscribe(globalListener);
 
     const listener = jest.fn();
     Environment.subscribe(listener);
@@ -48,12 +49,14 @@ describe('EmitterMixin', () => {
     await env.setup();
     expect(subscription.test_environment_setup).toHaveBeenCalled();
     expect(originalMethods.setup).toHaveBeenCalled();
-    expect(listener).toHaveBeenCalledWith({
+    const expectedContext = {
       env,
       testEvents: env.testEvents,
       context,
       config,
-    });
+    };
+    expect(globalListener).toHaveBeenCalledWith(expectedContext);
+    expect(listener).toHaveBeenCalledWith(expectedContext);
 
     expect(subscription.add_hook).not.toHaveBeenCalled();
     await env.handleTestEvent!({ name: 'add_hook' } as any, {} as any);

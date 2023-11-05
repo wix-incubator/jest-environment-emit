@@ -7,6 +7,7 @@ import type {
   EmitterSubscriptionContext,
   TestEnvironmentEvent,
 } from './types';
+import { getHierarchy } from './utils';
 
 const emitterMap: WeakMap<object, SemiAsyncEmitter<TestEnvironmentEvent>> = new WeakMap();
 const configMap: WeakMap<object, JestEnvironmentConfig> = new WeakMap();
@@ -72,11 +73,13 @@ export const getEmitter = (env: JestEnvironment) => {
 };
 
 export const registerSubscription = <E extends JestEnvironment>(
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  klass: Function,
   subscription: EmitterSubscription<E>,
 ) => {
-  const callbacks = registrationsMap.get(global) ?? [];
+  const callbacks = registrationsMap.get(klass) ?? [];
   callbacks.push(subscription as EmitterSubscription);
-  registrationsMap.set(global, callbacks);
+  registrationsMap.set(klass, callbacks);
 };
 
 /**
@@ -97,7 +100,7 @@ async function subscribeToEvents(env: JestEnvironment) {
   const envConfig = getConfig(env);
   const { projectConfig } = envConfig;
   const testEnvironmentOptions = projectConfig.testEnvironmentOptions;
-  const staticRegistrations = registrationsMap.get(global) ?? [];
+  const staticRegistrations = collectStaticRegistrations(env);
   const configRegistrations = (testEnvironmentOptions.eventListeners ??
     []) as EmitterSubscription[];
   const allRegistrations = [...staticRegistrations, ...configRegistrations];
@@ -116,4 +119,8 @@ async function subscribeToEvents(env: JestEnvironment) {
   for (const fn of callbacks) {
     fn(context);
   }
+}
+
+function collectStaticRegistrations<E extends JestEnvironment>(env: E): EmitterSubscription<E>[] {
+  return getHierarchy(env).flatMap((klass) => registrationsMap.get(klass) ?? []);
 }

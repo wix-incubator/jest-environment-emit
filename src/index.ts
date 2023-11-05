@@ -68,8 +68,6 @@ export function EmitterMixin<E extends JestEnvironment>(
   return {
     // @ts-expect-error TS2415: Class '[`${compositeName}`]' incorrectly extends base class 'E'.
     [`${compositeName}`]: class extends JestEnvironmentClass {
-      static subscribe = registerSubscription;
-
       constructor(...args: any[]) {
         super(...args);
         onTestEnvironmentCreate(this, args[0], args[1]);
@@ -77,6 +75,10 @@ export function EmitterMixin<E extends JestEnvironment>(
 
       protected get testEvents(): ReadonlyAsyncEmitter<TestEnvironmentEvent> {
         return getEmitter(this);
+      }
+
+      static subscribe(subscription: EmitterSubscription<E>) {
+        registerSubscription(this, subscription);
       }
 
       async setup() {
@@ -104,7 +106,8 @@ export function EmitterMixin<E extends JestEnvironment>(
   }[compositeName] as unknown as EmitterMixinClass<E>;
 }
 
-EmitterMixin.subscribe = registerSubscription;
+EmitterMixin.subscribe = (subscription: EmitterSubscription) =>
+  registerSubscription(Object.getPrototypeOf(EmitterMixin), subscription);
 
 export type WithSubscribe<E extends JestEnvironment = JestEnvironment> = {
   subscribe(subscription: EmitterSubscription<E>): void;
