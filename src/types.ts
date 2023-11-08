@@ -24,7 +24,7 @@ export type TestEnvironmentCircusEvent<E extends Circus.Event = Circus.Event> = 
   state: Circus.State;
 };
 
-export type WithEmitter<E extends JestEnvironment = JestEnvironment> = E & {
+export type HasEmitter<E extends JestEnvironment = JestEnvironment> = E & {
   readonly testEvents: ReadonlyAsyncEmitter<TestEnvironmentEvent>;
 };
 
@@ -48,7 +48,6 @@ export type EmitterSubscriptionCallback<E extends JestEnvironment = JestEnvironm
 ) => void;
 
 export type EmitterSubscription<E extends JestEnvironment = JestEnvironment> =
-  | string
   | EmitterSubscriptionCallback<E>
   | Partial<
       {

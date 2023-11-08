@@ -4,7 +4,7 @@ import { requireModule } from './requireModule';
 
 export async function resolveSubscription<E extends JestEnvironment = JestEnvironment>(
   rootDir: string,
-  registration: EmitterSubscription<E> | null,
+  registration: EmitterSubscription<E> | string | null,
 ): Promise<EmitterSubscriptionCallback<E>> {
   if (registration == null) {
     return () => {};

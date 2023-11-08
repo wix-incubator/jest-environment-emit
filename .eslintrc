@@ -18,8 +18,7 @@
     "__fixtures__",
     "coverage",
     "dist",
-    "scripts",
-    "website",
+    "e2e",
     "*.js"
   ],
   "parser": "@typescript-eslint/parser",
