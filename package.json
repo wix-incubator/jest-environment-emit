@@ -19,11 +19,6 @@
       "require": "./dist/index.js",
       "types": "./dist/index.d.ts"
     },
-    "./hooks": {
-      "import": "./dist/hooks.js",
-      "require": "./dist/hooks.js",
-      "types": "./dist/hooks.d.ts"
-    },
     "./jsdom": {
       "import": "./dist/jsdom.js",
       "require": "./dist/jsdom.js",

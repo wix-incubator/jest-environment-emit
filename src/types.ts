@@ -24,51 +24,29 @@ export type TestEnvironmentCircusEvent<E extends Circus.Event = Circus.Event> = 
   state: Circus.State;
 };
 
-export type WithEmitter<E extends JestEnvironment = JestEnvironment> = E & {
-  readonly testEvents: ReadonlyAsyncEmitter<TestEnvironmentEvent>;
-};
+export type EnvironmentListener<E extends JestEnvironment = JestEnvironment> =
+  | EnvironmentListenerWithOptions<E>
+  | EnvironmentListenerOnly<E>;
 
-export type EmitterSubscriptionContext<E extends JestEnvironment = JestEnvironment> = {
+export type EnvironmentListenerWithOptions<E extends JestEnvironment = JestEnvironment> = [
+  EnvironmentListenerOnly<E>,
+  any,
+];
+
+export type EnvironmentListenerOnly<E extends JestEnvironment = JestEnvironment> =
+  | EnvironmentListenerFn<E>
+  | string;
+
+export type EnvironmentListenerFn<E extends JestEnvironment = JestEnvironment> = (
+  context: Readonly<EnvironmentListenerContext<E>>,
+  listenerConfig?: any,
+) => void;
+
+export type EnvironmentListenerContext<E extends JestEnvironment = JestEnvironment> = {
   env: E;
   testEvents: ReadonlyAsyncEmitter<TestEnvironmentEvent>;
   context: EnvironmentContext;
   config: JestEnvironmentConfig;
 };
-
-export type AsyncTestEventListener<E extends TestEnvironmentEvent = TestEnvironmentEvent> = (
-  event: E,
-) => void | Promise<void>;
-
-export type SyncTestEventListener<E extends TestEnvironmentEvent = TestEnvironmentEvent> = (
-  event: E,
-) => void;
-
-export type EmitterSubscriptionCallback<E extends JestEnvironment = JestEnvironment> = (
-  context: Readonly<EmitterSubscriptionContext<E>>,
-) => void;
-
-export type EmitterSubscription<E extends JestEnvironment = JestEnvironment> =
-  | string
-  | EmitterSubscriptionCallback<E>
-  | Partial<
-      {
-        '*': AsyncTestEventListener;
-        test_environment_setup: AsyncTestEventListener<TestEnvironmentSetupEvent>;
-        test_environment_teardown: AsyncTestEventListener<TestEnvironmentTeardownEvent>;
-        start_describe_definition: SyncTestEventListener<
-          TestEnvironmentCircusEvent & { type: 'start_describe_definition' }
-        >;
-        finish_describe_definition: SyncTestEventListener<
-          TestEnvironmentCircusEvent & { type: 'finish_describe_definition' }
-        >;
-        add_hook: SyncTestEventListener<TestEnvironmentCircusEvent & { type: 'add_hook' }>;
-        add_test: SyncTestEventListener<TestEnvironmentCircusEvent & { type: 'add_test' }>;
-        error: SyncTestEventListener<TestEnvironmentCircusEvent & { type: 'error' }>;
-      } & {
-        [key in TestEnvironmentEvent['type']]: AsyncTestEventListener<
-          TestEnvironmentCircusEvent & { type: key }
-        >;
-      }
-    >;
 
 export type { ReadonlyAsyncEmitter } from './emitters';

@@ -2,15 +2,7 @@ import JestEnvironmentEmit from '../index';
 
 describe('EmitterMixin', () => {
   it('should be able to subscribe to events', async () => {
-    const subscription = {
-      add_hook: jest.fn(),
-      test_environment_setup: jest.fn(),
-      test_environment_teardown: jest.fn(),
-    };
-
-    JestEnvironmentEmit.subscribe(subscription);
-    JestEnvironmentEmit.subscribe('lodash/noop');
-
+    const fnSubscription = jest.fn();
     const originalMethods = {
       setup: jest.fn().mockResolvedValue(void 0),
       handleTestEvent: jest.fn().mockResolvedValue(void 0),
@@ -29,12 +21,8 @@ describe('EmitterMixin', () => {
       }
     }
 
-    const Environment = JestEnvironmentEmit(OriginalEnvironment as any);
-    const globalListener = jest.fn();
-    JestEnvironmentEmit.subscribe(globalListener);
-
-    const listener = jest.fn();
-    Environment.subscribe(listener);
+    const EnvironmentBase = JestEnvironmentEmit(OriginalEnvironment as any, undefined, 'Base');
+    const Environment = EnvironmentBase.derive(fnSubscription, 'WithMocks');
 
     const config = {
       globalConfig: {},
@@ -43,29 +31,27 @@ describe('EmitterMixin', () => {
     const context = {};
     const env = new Environment(config, context);
 
-    expect(listener).not.toHaveBeenCalled();
-
-    expect(subscription.test_environment_setup).not.toHaveBeenCalled();
+    expect(fnSubscription).not.toHaveBeenCalled();
     await env.setup();
-    expect(subscription.test_environment_setup).toHaveBeenCalled();
     expect(originalMethods.setup).toHaveBeenCalled();
-    const expectedContext = {
-      env,
-      testEvents: env.testEvents,
-      context,
-      config,
-    };
-    expect(globalListener).toHaveBeenCalledWith(expectedContext);
-    expect(listener).toHaveBeenCalledWith(expectedContext);
+    expect(fnSubscription).toHaveBeenCalledWith(
+      {
+        env,
+        context,
+        config,
+        testEvents: expect.objectContaining({
+          on: expect.any(Function),
+          once: expect.any(Function),
+          off: expect.any(Function),
+        }),
+      },
+      void 0,
+    );
 
-    expect(subscription.add_hook).not.toHaveBeenCalled();
     await env.handleTestEvent!({ name: 'add_hook' } as any, {} as any);
-    expect(subscription.add_hook).toHaveBeenCalled();
     expect(originalMethods.handleTestEvent).toHaveBeenCalled();
 
-    expect(subscription.test_environment_teardown).not.toHaveBeenCalled();
     await env.teardown();
-    expect(subscription.test_environment_teardown).toHaveBeenCalled();
     expect(originalMethods.teardown).toHaveBeenCalled();
   });
 });

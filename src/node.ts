@@ -1,5 +1,5 @@
 import JestEnvironmentNode from 'jest-environment-node';
-import { EmitterMixin } from './index';
+import { WithEmitter } from './index';
 
-export const TestEnvironment = EmitterMixin(JestEnvironmentNode);
+export const TestEnvironment = WithEmitter(JestEnvironmentNode);
 export default TestEnvironment;

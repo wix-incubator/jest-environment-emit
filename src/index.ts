@@ -2,7 +2,6 @@ import type { JestEnvironment } from '@jest/environment';
 import type { Circus } from '@jest/types';
 
 import {
-  getEmitter,
   onHandleTestEvent,
   onTestEnvironmentCreate,
   onTestEnvironmentSetup,
@@ -10,12 +9,7 @@ import {
   registerSubscription,
 } from './hooks';
 
-import type {
-  EmitterSubscription,
-  ReadonlyAsyncEmitter,
-  TestEnvironmentEvent,
-  WithEmitter,
-} from './types';
+import type { EnvironmentListener, EnvironmentListenerFn } from './types';
 
 export * from './types';
 
@@ -26,8 +20,8 @@ export * from './types';
  * and {@link JestEnvironment#teardown} in an extensible way.
  *
  * You won't need to extend this class directly – instead, you can tap into
- * the lifecycle events by registering listeners on the `testEvents` property
- * of the decorated Jest environment instance.
+ * the lifecycle events by registering listeners in `testEnvironmentOptions.eventListeners`
+ * property in your Jest configuration file.
  *
  * Even a less intrusive way to tap into the lifecycle events is to use the
  * static `register` method, which accepts a callback that will be invoked
@@ -38,47 +32,52 @@ export * from './types';
  * @returns a decorated Jest environment subclass, e.g. `WithMetadata(JestEnvironmentNode)`
  * @example
  * ```javascript
- * import WithEmitter from 'jest-environment-emit';
+ * import { WithEmitter } from 'jest-environment-emit';
+ * import JestEnvironmentNode from 'jest-environment-node';
  *
- * class MyEnvironment implements JestEnvironment {
- *   // ...
- * }
+ * export const TestEnvironment = WithEmitter(JestEnvironmentNode, {
+ *   test_environment_setup: async () => {},
+ *   test_environment_teardown: async () => {},
+ *   setup: async () => {},
+ *   teardown: async () => {},
+ *   add_hook: () => {},
+ *   add_test: () => {},
+ *   error: () => {},
+ *   test_fn_start: async () => {},
+ *   test_fn_success: async () => {},
+ *   test_fn_failure: async () => {},
+ * }, 'WithMyListeners'); // > class WithMyListeners(JestEnvironmentNode) {}
  *
- * WithEmitter.register(({ env, emitter, context }) => {
- *   emitter.on('test_environment_setup', async () => {})
- *          .on('test_environment_teardown', async () => {})
- *          .on('setup', async () => {})
- *          .on('teardown', async () => {})
- *          .on('add_hook', () => {})
- *          .on('add_test', () => {})
- *          .on('error', () => {});
- *          .on('test_fn_start', async () => {})
- *          .on('test_fn_success', async () => {})
- *          .on('test_fn_failure', async () => {});
+ * export const AdvancedTestEnvironment = TestEnvironment.derive('WithMoreListeners', {
+ *   test_environment_setup: async () => {},
  * });
- *
- * export default WithEmitter(MyEnvironment);
- * ```
  */
-export function EmitterMixin<E extends JestEnvironment>(
-  JestEnvironmentClass: new (...args: any[]) => E,
-): EmitterMixinClass<E> {
-  const compositeName = `WithEmitter(${JestEnvironmentClass.name})`;
 
-  return {
+export function WithEmitter<E extends JestEnvironment>(
+  JestEnvironmentClass: new (...args: any[]) => E,
+  callback?: EnvironmentListenerFn<E>,
+  MixinName = 'WithEmitter',
+): WithEmitterClass<E> {
+  const BaseClassName = JestEnvironmentClass.name;
+  const CompositeClassName = `${MixinName}(${BaseClassName})`;
+  const ClassWithEmitter = {
     // @ts-expect-error TS2415: Class '[`${compositeName}`]' incorrectly extends base class 'E'.
-    [`${compositeName}`]: class extends JestEnvironmentClass {
+    [`${CompositeClassName}`]: class extends JestEnvironmentClass {
       constructor(...args: any[]) {
         super(...args);
         onTestEnvironmentCreate(this, args[0], args[1]);
       }
 
-      protected get testEvents(): ReadonlyAsyncEmitter<TestEnvironmentEvent> {
-        return getEmitter(this);
-      }
-
-      static subscribe(subscription: EmitterSubscription<E>) {
-        registerSubscription(this, subscription);
+      static derive(
+        callback: EnvironmentListenerFn<E>,
+        DerivedMixinName = MixinName,
+      ): WithEmitterClass<E> {
+        const derivedName = `${DerivedMixinName}(${BaseClassName})`;
+        const resultClass = {
+          [`${derivedName}`]: class extends ClassWithEmitter {},
+        }[derivedName];
+        registerSubscription(resultClass, callback);
+        return resultClass;
       }
 
       async setup() {
@@ -103,20 +102,20 @@ export function EmitterMixin<E extends JestEnvironment>(
         await onTestEnvironmentTeardown(this);
       }
     },
-  }[compositeName] as unknown as EmitterMixinClass<E>;
+  }[CompositeClassName] as unknown as WithEmitterClass<E>;
+
+  if (callback) {
+    registerSubscription(ClassWithEmitter, callback);
+  }
+
+  return ClassWithEmitter;
 }
 
-EmitterMixin.subscribe = (subscription: EmitterSubscription) =>
-  registerSubscription(Object.getPrototypeOf(EmitterMixin), subscription);
-
-export type WithSubscribe<E extends JestEnvironment = JestEnvironment> = {
-  subscribe(subscription: EmitterSubscription<E>): void;
+export type WithEmitterClass<E extends JestEnvironment> = (new (...args: any[]) => E) & {
+  derive(callback: EnvironmentListener<E>, ClassName?: string): WithEmitterClass<E>;
 };
-
-export type EmitterMixinClass<E extends JestEnvironment> = WithSubscribe<E> &
-  (new (...args: any[]) => WithEmitter<E>);
 
 /**
  * @inheritDoc
  */
-export default EmitterMixin as WithSubscribe & typeof EmitterMixin;
+export default WithEmitter;

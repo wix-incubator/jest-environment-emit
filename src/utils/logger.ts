@@ -8,6 +8,15 @@ bunyamin.threadGroups.push({
   displayName: PACKAGE_NAME,
 });
 
+bunyamin.logger = {
+  fatal: console.error,
+  error: console.error,
+  warn: console.warn,
+  info: console.log,
+  debug: console.log,
+  trace: console.log,
+};
+
 export const logger = isDebug(PACKAGE_NAME) ? bunyamin : nobunyamin;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

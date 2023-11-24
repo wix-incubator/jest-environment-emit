@@ -1,5 +1,5 @@
 import JestEnvironmentJsdom from 'jest-environment-jsdom';
-import { EmitterMixin } from './index';
+import { WithEmitter } from './index';
 
-export const TestEnvironment = EmitterMixin(JestEnvironmentJsdom);
+export const TestEnvironment = WithEmitter(JestEnvironmentJsdom);
 export default TestEnvironment;
