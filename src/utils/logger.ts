@@ -3,10 +3,12 @@ import { noop } from './noop';
 
 const PACKAGE_NAME = 'jest-environment-emit';
 
-bunyamin.threadGroups.push({
-  id: PACKAGE_NAME,
-  displayName: PACKAGE_NAME,
-});
+if (!bunyamin.threadGroups.some((x) => x.id === PACKAGE_NAME)) {
+  bunyamin.threadGroups.push({
+    id: PACKAGE_NAME,
+    displayName: PACKAGE_NAME,
+  });
+}
 
 bunyamin.logger = {
   fatal: console.error,
