@@ -2,6 +2,7 @@ import type { JestEnvironment } from '@jest/environment';
 import type { Circus } from '@jest/types';
 
 import {
+  getEmitter,
   onHandleTestEvent,
   onTestEnvironmentCreate,
   onTestEnvironmentSetup,
@@ -9,7 +10,12 @@ import {
   registerSubscription,
 } from './hooks';
 
-import type { EnvironmentListener, EnvironmentListenerFn } from './types';
+import type {
+  EnvironmentListener,
+  EnvironmentListenerFn,
+  ReadonlyAsyncEmitter,
+  TestEnvironmentEvent,
+} from './types';
 
 export * from './types';
 
@@ -63,9 +69,12 @@ export function WithEmitter<E extends JestEnvironment>(
   const ClassWithEmitter = {
     // @ts-expect-error TS2415: Class '[`${compositeName}`]' incorrectly extends base class 'E'.
     [`${CompositeClassName}`]: class extends JestEnvironmentClass {
+      readonly testEvents: ReadonlyAsyncEmitter<TestEnvironmentEvent>;
+
       constructor(...args: any[]) {
         super(...args);
         onTestEnvironmentCreate(this, args[0], args[1]);
+        this.testEvents = getEmitter(this);
       }
 
       static derive(
@@ -111,7 +120,14 @@ export function WithEmitter<E extends JestEnvironment>(
   return ClassWithEmitter;
 }
 
-export type WithEmitterClass<E extends JestEnvironment> = (new (...args: any[]) => E) & {
+export type WithTestEvents<E extends JestEnvironment> = E & {
+  readonly testEvents: ReadonlyAsyncEmitter<TestEnvironmentEvent>;
+  handleTestEvent: Circus.EventHandler;
+};
+
+export type WithEmitterClass<E extends JestEnvironment> = (new (
+  ...args: any[]
+) => WithTestEvents<E>) & {
   derive(callback: EnvironmentListener<E>, ClassName?: string): WithEmitterClass<E>;
 };
 

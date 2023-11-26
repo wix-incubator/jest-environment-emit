@@ -30,6 +30,8 @@ describe('EmitterMixin', () => {
     };
     const context = {};
     const env = new Environment(config, context);
+    const onAddHook = jest.fn();
+    env.testEvents.on('add_hook', onAddHook);
 
     expect(fnSubscription).not.toHaveBeenCalled();
     await env.setup();
@@ -48,8 +50,9 @@ describe('EmitterMixin', () => {
       void 0,
     );
 
-    await env.handleTestEvent!({ name: 'add_hook' } as any, {} as any);
+    await env.handleTestEvent({ name: 'add_hook' } as any, {} as any);
     expect(originalMethods.handleTestEvent).toHaveBeenCalled();
+    expect(onAddHook).toHaveBeenCalled();
 
     await env.teardown();
     expect(originalMethods.teardown).toHaveBeenCalled();

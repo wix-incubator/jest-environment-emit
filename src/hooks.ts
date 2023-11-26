@@ -1,7 +1,7 @@
 import type { EnvironmentContext, JestEnvironment, JestEnvironmentConfig } from '@jest/environment';
 import type { Circus } from '@jest/types';
 import { ResolvedEnvironmentListener, resolveSubscription } from './callbacks';
-import { SemiAsyncEmitter } from './emitters';
+import { ReadonlyAsyncEmitter, SemiAsyncEmitter } from './emitters';
 import type {
   EnvironmentListener,
   EnvironmentListenerFn,
@@ -91,6 +91,10 @@ function getContext(env: JestEnvironment): EnvironmentInternalContext {
   }
 
   return memo;
+}
+
+export function getEmitter(env: JestEnvironment): ReadonlyAsyncEmitter<TestEnvironmentEvent> {
+  return getContext(env).testEvents as ReadonlyAsyncEmitter<TestEnvironmentEvent>;
 }
 
 function getCallbackContext(env: JestEnvironment): EnvironmentListenerContext {
