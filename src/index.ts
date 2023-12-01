@@ -10,12 +10,7 @@ import {
   registerSubscription,
 } from './hooks';
 
-import type {
-  EnvironmentListener,
-  EnvironmentListenerFn,
-  ReadonlyAsyncEmitter,
-  TestEnvironmentEvent,
-} from './types';
+import type { EnvironmentListener, EnvironmentListenerFn, EnvironmentEventEmitter } from './types';
 
 export * from './types';
 
@@ -69,7 +64,7 @@ export function WithEmitter<E extends JestEnvironment>(
   const ClassWithEmitter = {
     // @ts-expect-error TS2415: Class '[`${compositeName}`]' incorrectly extends base class 'E'.
     [`${CompositeClassName}`]: class extends JestEnvironmentClass {
-      readonly testEvents: ReadonlyAsyncEmitter<TestEnvironmentEvent>;
+      readonly testEvents: EnvironmentEventEmitter;
 
       constructor(...args: any[]) {
         super(...args);
@@ -121,7 +116,7 @@ export function WithEmitter<E extends JestEnvironment>(
 }
 
 export type WithTestEvents<E extends JestEnvironment> = E & {
-  readonly testEvents: ReadonlyAsyncEmitter<TestEnvironmentEvent>;
+  readonly testEvents: EnvironmentEventEmitter;
   handleTestEvent: Circus.EventHandler;
 };
 

@@ -60,7 +60,7 @@
   },
   "homepage": "https://github.com/wix-incubator/jest-environment-emit#readme",
   "dependencies": {
-    "bunyamin": "^1.4.0",
+    "bunyamin": "^1.5.0",
     "funpermaproxy": "^1.1.0",
     "lodash.merge": "^4.6.2",
     "node-ipc": "9.2.1",

@@ -1,12 +1,17 @@
-export interface Emitter<Event extends { type: string }> extends ReadonlyEmitter<Event> {
-  emit(event: Event): void;
+export interface ReadonlyEmitter<EventMap> {
+  on<K extends keyof EventMap>(
+    type: K | '*',
+    listener: (event: EventMap[K]) => unknown,
+    weight?: number,
+  ): this;
+  once<K extends keyof EventMap>(
+    type: K | '*',
+    listener: (event: EventMap[K]) => unknown,
+    weight?: number,
+  ): this;
+  off<K extends keyof EventMap>(type: K | '*', listener: (event: EventMap[K]) => unknown): this;
 }
 
-export interface ReadonlyEmitter<Event extends { type: string }> {
-  on(type: '*', listener: (event: Event) => unknown): this;
-  on<E extends Event>(type: E['type'], listener: (event: E) => unknown): this;
-  once(type: '*', listener: (event: Event) => unknown): this;
-  once<E extends Event>(type: E['type'], listener: (event: E) => unknown): this;
-  off(type: '*', listener: (event: Event) => unknown): this;
-  off<E extends Event>(type: E['type'], listener: (event: E) => unknown): this;
+export interface Emitter<EventMap> extends ReadonlyEmitter<EventMap> {
+  emit<K extends keyof EventMap>(type: K, event: EventMap[K]): void;
 }

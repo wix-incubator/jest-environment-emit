@@ -1,17 +1,20 @@
-export interface ReadonlyAsyncEmitter<Event extends { type: string }> {
-  on<E extends Event>(
-    type: E['type'] | '*',
-    listener: (event: E) => void | Promise<void>,
+export interface ReadonlyAsyncEmitter<EventMap> {
+  on<K extends keyof EventMap>(
+    type: K | '*',
+    listener: (event: EventMap[K]) => void | Promise<void>,
     weight?: number,
   ): this;
-  once<E extends Event>(
-    type: E['type'] | '*',
-    listener: (event: E) => void | Promise<void>,
+  once<K extends keyof EventMap>(
+    type: K | '*',
+    listener: (event: EventMap[K]) => void | Promise<void>,
     weight?: number,
   ): this;
-  off<E extends Event>(type: E['type'] | '*', listener: (event: E) => void | Promise<void>): this;
+  off<K extends keyof EventMap>(
+    type: K | '*',
+    listener: (event: EventMap[K]) => void | Promise<void>,
+  ): this;
 }
 
-export interface AsyncEmitter<Event extends { type: string }> extends ReadonlyAsyncEmitter<Event> {
-  emit(event: Event): Promise<void>;
+export interface AsyncEmitter<EventMap> extends ReadonlyAsyncEmitter<EventMap> {
+  emit<K extends keyof EventMap>(type: K, event: EventMap[K]): Promise<void>;
 }

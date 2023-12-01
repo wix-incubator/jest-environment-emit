@@ -1,60 +1,95 @@
 import type { ReadonlyAsyncEmitter } from './AsyncEmitter';
+import type { ReadonlyEmitter } from './Emitter';
 import { SerialAsyncEmitter } from './SerialAsyncEmitter';
 import { SerialSyncEmitter } from './SerialSyncEmitter';
 
-export class SemiAsyncEmitter<Event extends { type: string }>
-  implements ReadonlyAsyncEmitter<Event>
-{
-  readonly #asyncEmitter: SerialAsyncEmitter<Event>;
-  readonly #syncEmitter: SerialSyncEmitter<Event>;
-  readonly #syncEvents: Set<Event['type']>;
+export type ReadonlySemiAsyncEmitter<AsyncMap, SyncMap> = ReadonlyAsyncEmitter<AsyncMap> &
+  ReadonlyEmitter<SyncMap>;
 
-  constructor(name: string, syncEvents: Event['type'][]) {
-    this.#asyncEmitter = new SerialAsyncEmitter<Event>(name);
-    this.#syncEmitter = new SerialSyncEmitter<Event>(name);
+export class SemiAsyncEmitter<AsyncMap, SyncMap>
+  implements ReadonlyAsyncEmitter<AsyncMap>, ReadonlyEmitter<SyncMap>
+{
+  readonly #asyncEmitter: SerialAsyncEmitter<AsyncMap>;
+  readonly #syncEmitter: SerialSyncEmitter<SyncMap>;
+  readonly #syncEvents: Set<keyof SyncMap>;
+
+  constructor(name: string, syncEvents: Iterable<keyof SyncMap>) {
+    this.#asyncEmitter = new SerialAsyncEmitter(name);
+    this.#syncEmitter = new SerialSyncEmitter(name);
     this.#syncEvents = new Set(syncEvents);
   }
 
-  on<E extends Event>(
-    type: E['type'] | '*',
-    listener: (event: E) => unknown,
+  on<K extends keyof SyncMap>(
+    type: K | '*',
+    listener: (event: SyncMap[K]) => unknown,
+    order?: number,
+  ): this;
+  on<K extends keyof AsyncMap>(
+    type: K | '*',
+    listener: (event: AsyncMap[K]) => unknown,
+    order?: number,
+  ): this;
+  on<K extends keyof (AsyncMap & SyncMap)>(
+    type: K | '*',
+    listener: (event: any) => unknown,
     order?: number,
   ): this {
     return this.#invoke('on', type, listener, order);
   }
 
-  once<E extends Event>(
-    type: E['type'] | '*',
-    listener: (event: E) => unknown,
+  once<K extends keyof SyncMap>(
+    type: K | '*',
+    listener: (event: SyncMap[K]) => unknown,
+    order?: number,
+  ): this;
+  once<K extends keyof AsyncMap>(
+    type: K | '*',
+    listener: (event: AsyncMap[K]) => unknown,
+    order?: number,
+  ): this;
+  once<K extends keyof (AsyncMap & SyncMap)>(
+    type: K | '*',
+    listener: (event: any) => unknown,
     order?: number,
   ): this {
     return this.#invoke('once', type, listener, order);
   }
 
-  off<E extends Event>(type: E['type'] | '*', listener: (event: E) => unknown): this {
+  off<K extends keyof SyncMap>(type: K | '*', listener: (event: SyncMap[K]) => unknown): this;
+  off<K extends keyof AsyncMap>(type: K | '*', listener: (event: AsyncMap[K]) => unknown): this;
+  off<K extends keyof (AsyncMap & SyncMap)>(
+    type: K | '*',
+    listener: (event: any) => unknown,
+  ): this {
     return this.#invoke('off', type, listener);
   }
 
-  emit(event: Event): void | Promise<void> {
-    return this.#syncEvents.has(event.type as Event['type'])
-      ? this.#syncEmitter.emit(event)
-      : this.#asyncEmitter.emit(event);
+  emit<K extends keyof SyncMap>(type: K, event: SyncMap[K]): void;
+  emit<K extends keyof AsyncMap>(type: K, event: AsyncMap[K]): Promise<void>;
+  emit<K extends keyof (AsyncMap & SyncMap)>(type: K, event: any): void | Promise<void> {
+    return this.#syncEvents.has(type as keyof SyncMap)
+      ? this.#syncEmitter.emit(type as keyof SyncMap, event)
+      : this.#asyncEmitter.emit(type as keyof AsyncMap, event);
   }
 
-  #invoke<E extends Event>(
+  #invoke<K extends keyof (AsyncMap & SyncMap)>(
     methodName: 'on' | 'once' | 'off',
-    type: E['type'] | '*',
-    listener: (event: E) => unknown,
+    type: K | '*',
+    listener: (event: any) => unknown,
     order?: number,
   ): this {
-    const isSync = this.#syncEvents.has(type);
+    const isSync = this.#syncEvents.has(type as keyof SyncMap);
 
     if (type === '*' || isSync) {
-      this.#syncEmitter[methodName](type, listener, order);
+      this.#syncEmitter[methodName](type as keyof SyncMap, listener, order);
     }
 
     if (type === '*' || !isSync) {
-      this.#asyncEmitter[methodName](type, listener as (event: Event) => Promise<void>, order);
+      this.#asyncEmitter[methodName](
+        type as keyof AsyncMap,
+        listener as (event: Event) => Promise<void>,
+        order,
+      );
     }
 
     return this;

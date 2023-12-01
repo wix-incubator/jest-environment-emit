@@ -14,11 +14,9 @@ const __LISTENERS = optimizeTracing((listener: unknown) => ({
 
 const ONCE: unique symbol = Symbol('ONCE');
 
-export abstract class ReadonlyEmitterBase<Event extends { type: string }>
-  implements ReadonlyEmitter<Event>
-{
+export abstract class ReadonlyEmitterBase<EventMap> implements ReadonlyEmitter<EventMap> {
   protected readonly _log: typeof logger;
-  protected readonly _listeners: Map<Event['type'] | '*', [Function, number][]> = new Map();
+  protected readonly _listeners: Map<keyof EventMap | '*', [Function, number][]> = new Map();
 
   #listenersCounter = 0;
 
@@ -31,13 +29,13 @@ export abstract class ReadonlyEmitterBase<Event extends { type: string }>
     this._listeners.set('*', []);
   }
 
-  on<E extends Event>(
-    type: E['type'] | '*',
+  on<K extends keyof EventMap>(
+    type: K | '*',
     listener: Function & { [ONCE]?: true },
     order?: number,
   ): this {
     if (!listener[ONCE]) {
-      this._log.trace(__LISTENERS(listener), `on(${type})`);
+      this._log.trace(__LISTENERS(listener), `on(${String(type)})`);
     }
 
     if (!this._listeners.has(type)) {
@@ -51,18 +49,18 @@ export abstract class ReadonlyEmitterBase<Event extends { type: string }>
     return this;
   }
 
-  once<E extends Event>(type: E['type'] | '*', listener: Function, order?: number): this {
-    this._log.trace(__LISTENERS(listener), `once(${type})`);
+  once<K extends keyof EventMap>(type: K | '*', listener: Function, order?: number): this {
+    this._log.trace(__LISTENERS(listener), `once(${String(type)})`);
     return this.on(type, this.#createOnceListener(type, listener), order);
   }
 
-  off<E extends Event>(
-    type: E['type'] | '*',
+  off<K extends keyof EventMap>(
+    type: K | '*',
     listener: Function & { [ONCE]?: true },
     _order?: number,
   ): this {
     if (!listener[ONCE]) {
-      this._log.trace(__LISTENERS(listener), `off(${type})`);
+      this._log.trace(__LISTENERS(listener), `off(${String(type)})`);
     }
 
     const listeners = this._listeners.get(type) || [];
@@ -73,7 +71,7 @@ export abstract class ReadonlyEmitterBase<Event extends { type: string }>
     return this;
   }
 
-  protected *_getListeners(type: Event['type']): Iterable<Function> {
+  protected *_getListeners<K extends keyof EventMap>(type: K): Iterable<Function> {
     const wildcard: [Function, number][] = this._listeners.get('*') ?? [];
     const named: [Function, number][] = this._listeners.get(type) ?? [];
     for (const [listener] of iterateSorted<[Function, number]>(getOrder, wildcard, named)) {
@@ -81,7 +79,7 @@ export abstract class ReadonlyEmitterBase<Event extends { type: string }>
     }
   }
 
-  #createOnceListener(type: Event['type'], listener: Function) {
+  #createOnceListener<K extends keyof EventMap>(type: K | '*', listener: Function) {
     const onceListener = ((event: Event) => {
       this.off(type, onceListener);
       listener(event);

@@ -1,17 +1,24 @@
 import type { EnvironmentContext, JestEnvironment, JestEnvironmentConfig } from '@jest/environment';
 import type { Circus } from '@jest/types';
 import { ResolvedEnvironmentListener, resolveSubscription } from './callbacks';
-import { ReadonlyAsyncEmitter, SemiAsyncEmitter } from './emitters';
+import { SemiAsyncEmitter } from './emitters';
 import type {
   EnvironmentListener,
   EnvironmentListenerFn,
   EnvironmentListenerContext,
-  TestEnvironmentEvent,
+  TestEnvironmentAsyncEventMap,
+  TestEnvironmentSyncEventMap,
+  EnvironmentEventEmitter,
 } from './types';
 import { getHierarchy } from './utils';
 
+type EnvironmentEventEmitterImpl = SemiAsyncEmitter<
+  TestEnvironmentAsyncEventMap,
+  TestEnvironmentSyncEventMap
+>;
+
 type EnvironmentInternalContext = {
-  testEvents: SemiAsyncEmitter<TestEnvironmentEvent>;
+  testEvents: EnvironmentEventEmitterImpl;
   environmentConfig: JestEnvironmentConfig;
   environmentContext: EnvironmentContext;
 };
@@ -24,7 +31,10 @@ export function onTestEnvironmentCreate(
   jestEnvironmentConfig: JestEnvironmentConfig,
   environmentContext: EnvironmentContext,
 ): void {
-  const testEvents = new SemiAsyncEmitter<TestEnvironmentEvent>('jest-environment-emit', [
+  const testEvents = new SemiAsyncEmitter<
+    TestEnvironmentAsyncEventMap,
+    TestEnvironmentSyncEventMap
+  >('jest-environment-emit', [
     'start_describe_definition',
     'finish_describe_definition',
     'add_hook',
@@ -41,17 +51,24 @@ export function onTestEnvironmentCreate(
 
 export async function onTestEnvironmentSetup(env: JestEnvironment): Promise<void> {
   await subscribeToEvents(env);
-  await getContext(env).testEvents.emit({ type: 'test_environment_setup', env });
+  await getContext(env).testEvents.emit('test_environment_setup', {
+    type: 'test_environment_setup',
+    env,
+  });
 }
 
 export const onHandleTestEvent = (
   env: JestEnvironment,
   event: Circus.Event,
   state: Circus.State,
-): void | Promise<void> => getContext(env).testEvents.emit({ type: event.name, env, event, state });
+): void | Promise<void> =>
+  getContext(env).testEvents.emit(event.name as any, { type: event.name, env, event, state });
 
 export async function onTestEnvironmentTeardown(env: JestEnvironment): Promise<void> {
-  await getContext(env).testEvents.emit({ type: 'test_environment_teardown', env });
+  await getContext(env).testEvents.emit('test_environment_teardown', {
+    type: 'test_environment_teardown',
+    env,
+  });
 }
 
 export const registerSubscription = <E extends JestEnvironment>(
@@ -93,8 +110,8 @@ function getContext(env: JestEnvironment): EnvironmentInternalContext {
   return memo;
 }
 
-export function getEmitter(env: JestEnvironment): ReadonlyAsyncEmitter<TestEnvironmentEvent> {
-  return getContext(env).testEvents as ReadonlyAsyncEmitter<TestEnvironmentEvent>;
+export function getEmitter(env: JestEnvironment): EnvironmentEventEmitter {
+  return getContext(env).testEvents as EnvironmentEventEmitter;
 }
 
 function getCallbackContext(env: JestEnvironment): EnvironmentListenerContext {
