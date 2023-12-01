@@ -29,6 +29,11 @@
       "require": "./dist/node.js",
       "types": "./dist/node.d.ts"
     },
+    "./debug": {
+      "import": "./dist/debug.js",
+      "require": "./dist/debug.js",
+      "types": "./dist/debug.d.ts"
+    },
     "./package.json": "./package.json"
   },
   "engines": {
@@ -61,6 +66,8 @@
   "homepage": "https://github.com/wix-incubator/jest-environment-emit#readme",
   "dependencies": {
     "bunyamin": "^1.5.0",
+    "bunyan": "^2.0.5",
+    "bunyan-debug-stream": "^3.1.0",
     "funpermaproxy": "^1.1.0",
     "lodash.merge": "^4.6.2",
     "node-ipc": "9.2.1",
@@ -97,6 +104,7 @@
     "@jest/environment": "^29.3.1",
     "@jest/reporters": "^29.3.1",
     "@jest/types": "^29.3.1",
+    "@types/bunyan": "^1.8.11",
     "@types/glob": "^8.0.0",
     "@types/jest": "^29.2.5",
     "@types/lodash": "^4.14.191",
