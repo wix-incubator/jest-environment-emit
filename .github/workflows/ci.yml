@@ -31,6 +31,7 @@ jobs:
 
   publish:
     name: Publish
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/alpha' || github.ref == 'refs/heads/beta'
     needs: [sanity]
     runs-on: ubuntu-latest
     steps:
