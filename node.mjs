@@ -1,6 +1,5 @@
 import node from './dist/node.js';
 
-const { TestEnvironment } = node;
+const { default: TestEnvironment } = node;
 
-export { TestEnvironment };
 export default TestEnvironment;
