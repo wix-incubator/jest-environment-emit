@@ -11,8 +11,5 @@
   },
   "dependencies": {
     "jest-environment-emit": "file:../jest-environment-emit-1.0.0.tgz"
-  },
-  "devDependencies": {
-    "typescript": "^5.3.3"
   }
 }

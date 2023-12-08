@@ -54,7 +54,7 @@ export * from './types';
  * });
  */
 
-export function WithEmitter<E extends JestEnvironment>(
+export default function WithEmitter<E extends JestEnvironment>(
   JestEnvironmentClass: new (...args: any[]) => E,
   callback?: EnvironmentListenerFn<E>,
   MixinName = 'WithEmitter',
@@ -125,8 +125,3 @@ export type WithEmitterClass<E extends JestEnvironment> = (new (
 ) => WithTestEvents<E>) & {
   derive(callback: EnvironmentListener<E>, ClassName?: string): WithEmitterClass<E>;
 };
-
-/**
- * @inheritDoc
- */
-export default WithEmitter;

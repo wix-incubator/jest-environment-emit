@@ -1,4 +1,4 @@
-const TestEnvironment = require('jest-environment-emit/node').default;
+const TestEnvironment = require('jest-environment-emit/node');
 
 class E2ETestEnvironment extends TestEnvironment {
   constructor(config, context) {

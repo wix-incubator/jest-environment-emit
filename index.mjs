@@ -1,6 +1,5 @@
 import index from './dist/index.js';
 
-const { WithEmitter } = index;
+const { default: WithEmitter } = index;
 
-export { WithEmitter };
 export default WithEmitter;

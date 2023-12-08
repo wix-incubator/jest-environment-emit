@@ -1,6 +1,7 @@
-import WithEmitter, { WithEmitter as WithEmitterNamed } from 'jest-environment-emit';
-import JsdomTestEnvironment, { TestEnvironment as JsdomTestEnvironmentNamed } from 'jest-environment-emit/jsdom';
-import NodeTestEnvironment, { TestEnvironment as NodeTestEnvironmentNamed } from 'jest-environment-emit/node';
+import WithEmitter from 'jest-environment-emit';
+import type { EnvironmentListenerFn } from 'jest-environment-emit';
+import JsdomTestEnvironment from 'jest-environment-emit/jsdom';
+import NodeTestEnvironment from 'jest-environment-emit/node';
 import { aggregateLogs } from 'jest-environment-emit/debug';
 
 function assertType<T>(_actual: T): void {
@@ -8,9 +9,13 @@ function assertType<T>(_actual: T): void {
 }
 
 assertType<Function>(WithEmitter);
-assertType<Function>(WithEmitterNamed);
 assertType<Function>(JsdomTestEnvironment);
-assertType<Function>(JsdomTestEnvironmentNamed);
 assertType<Function>(NodeTestEnvironment);
-assertType<Function>(NodeTestEnvironmentNamed);
 assertType<Function>(aggregateLogs);
+
+assertType<EnvironmentListenerFn>((context, options) => {
+  context.env.global.__INJECT__ = options;
+  context.testEvents.on('test_start', ({ event, state }) => {
+    console.log(event.test.fn.toString(), state.rootDescribeBlock.name, options);
+  });
+});
