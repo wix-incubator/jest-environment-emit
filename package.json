@@ -9,29 +9,30 @@
     "src",
     "dist",
     "*.js",
+    "*.mjs",
     "!**/__utils__",
     "!**/__tests__",
     "!**/*.test.*"
   ],
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "require": "./dist/index.js",
+      "import": "./index.mjs",
+      "require": "./index.js",
       "types": "./dist/index.d.ts"
     },
     "./jsdom": {
-      "import": "./dist/jsdom.js",
-      "require": "./dist/jsdom.js",
+      "import": "./jsdom.mjs",
+      "require": "./jsdom.js",
       "types": "./dist/jsdom.d.ts"
     },
     "./node": {
-      "import": "./dist/node.js",
-      "require": "./dist/node.js",
+      "import": "./node.mjs",
+      "require": "./node.js",
       "types": "./dist/node.d.ts"
     },
     "./debug": {
-      "import": "./dist/debug.js",
-      "require": "./dist/debug.js",
+      "import": "./debug.mjs",
+      "require": "./debug.js",
       "types": "./dist/debug.d.ts"
     },
     "./package.json": "./package.json"
@@ -46,7 +47,8 @@
     "lint": "eslint . --fix",
     "lint:ci": "eslint .",
     "lint:staged": "lint-staged",
-    "test": "jest"
+    "test": "jest",
+    "test:e2e": "jest --config e2e/jest.config.js"
   },
   "repository": {
     "type": "git",

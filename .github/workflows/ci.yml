@@ -28,6 +28,18 @@ jobs:
         run: npm run lint:ci
       - name: Unit Tests
         run: npm test
+      - name: Pack
+        run: npm pack
+      - name: E2E Tests
+        run: npm run test:e2e
+      - name: Install package-e2e project
+        uses: bahmutov/npm-install@v1
+        with:
+          useLockFile: false
+          working-directory: 'package-e2e'
+      - name: Packaging E2E Tests
+        run: npm test
+        working-directory: 'package-e2e'
 
   publish:
     name: Publish
