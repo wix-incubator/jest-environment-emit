@@ -4,7 +4,7 @@ module.exports = {
   ...base,
 
   rootDir: '..',
-  testEnvironment: 'jest-environment-emit/node',
+  testEnvironment: './e2e/testEnvironment.js',
   testEnvironmentOptions: {
     eventListeners: [
       ['./e2e/listeners.cjs', { prefix: 'cjs' }],
