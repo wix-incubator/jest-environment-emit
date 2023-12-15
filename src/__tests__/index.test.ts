@@ -23,7 +23,22 @@ describe('integration test', () => {
     }
 
     const EnvironmentBase = JestEnvironmentEmit(OriginalEnvironment as any, undefined, 'Base');
-    const Environment = EnvironmentBase.derive(fnSubscription, 'WithMocks');
+    class EnvironmentMiddle1 extends EnvironmentBase {
+      extraMethod() {
+        return 1;
+      }
+    }
+    class EnvironmentMiddle2 extends EnvironmentMiddle1 {
+      extraMethod() {
+        return super.extraMethod() + 1;
+      }
+
+      extraMethod2() {
+        return 2;
+      }
+    }
+
+    const Environment = EnvironmentMiddle2.derive(fnSubscription, 'WithMocks');
 
     const config = {
       globalConfig: {},
@@ -36,6 +51,8 @@ describe('integration test', () => {
     };
     const context = {};
     const env = new Environment(config, context);
+    expect((env as any).extraMethod()).toBe(2);
+    expect((env as any).extraMethod2()).toBe(2);
     const onAddHook = jest.fn();
     env.testEvents.on('add_hook', onAddHook);
 

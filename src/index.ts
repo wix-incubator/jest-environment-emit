@@ -76,9 +76,10 @@ export default function WithEmitter<E extends JestEnvironment>(
         callback: EnvironmentListenerFn<E>,
         DerivedMixinName = MixinName,
       ): WithEmitterClass<E> {
+        const CurrentClass = this as unknown as WithEmitterClass<E>;
         const derivedName = `${DerivedMixinName}(${BaseClassName})`;
         const resultClass = {
-          [`${derivedName}`]: class extends ClassWithEmitter {},
+          [`${derivedName}`]: class extends CurrentClass {},
         }[derivedName];
         registerSubscription(resultClass, callback);
         return resultClass;
