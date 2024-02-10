@@ -4,6 +4,7 @@ module.exports = {
   ...base,
 
   rootDir: '..',
+  globalTeardown: './e2e/globalTeardown',
   testEnvironment: './e2e/testEnvironment.js',
   testEnvironmentOptions: {
     eventListeners: [

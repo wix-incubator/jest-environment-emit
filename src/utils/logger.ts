@@ -2,6 +2,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import {
   bunyamin,
+  nobunyamin,
   isDebug,
   threadGroups,
   traceEventStream,
@@ -13,7 +14,7 @@ import { noop } from './noop';
 
 const logsDirectory = process.env.JEST_BUNYAMIN_DIR;
 const LOG_PATTERN = /^jest-bunyamin\..*\.log$/;
-const PACKAGE_NAME = 'jest-enviroment-emit' as const;
+const PACKAGE_NAME = 'jest-environment-emit' as const;
 
 function isTraceEnabled(): boolean {
   return !!logsDirectory;
@@ -111,6 +112,8 @@ export const logger = bunyamin.child({
   cat: PACKAGE_NAME,
 });
 
-export const optimizeTracing: <F>(f: F) => F = isDebug(PACKAGE_NAME)
-  ? (f) => f
-  : ((() => noop) as any);
+const isDebugMode = isDebug(PACKAGE_NAME);
+
+export const debugLogger = isDebugMode ? logger : nobunyamin;
+
+export const optimizeTracing: <F>(f: F) => F = isDebugMode ? (f) => f : ((() => noop) as any);

@@ -6,11 +6,14 @@ const CATEGORIES = {
   INVOKE: ['invoke'],
 };
 
-export const __ENQUEUE = optimizeTracing((event: unknown) => ({
+export const __ENQUEUE = optimizeTracing((_event: unknown) => ({
   cat: CATEGORIES.ENQUEUE,
-  event,
 }));
-export const __EMIT = optimizeTracing((event: unknown) => ({ cat: CATEGORIES.EMIT, event }));
+
+export const __EMIT = optimizeTracing((_event: unknown) => ({
+  cat: CATEGORIES.EMIT,
+}));
+
 export const __INVOKE = optimizeTracing((listener: unknown, type?: '*') => ({
   cat: CATEGORIES.INVOKE,
   fn: `${listener}`,
