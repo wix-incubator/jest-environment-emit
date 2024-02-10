@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-types */
-import { logger, optimizeTracing, iterateSorted } from '../utils';
+import { debugLogger, optimizeTracing, iterateSorted } from '../utils';
 import type { ReadonlyEmitter } from './Emitter';
 
 //#region Optimized event helpers
@@ -15,13 +15,13 @@ const __LISTENERS = optimizeTracing((listener: unknown) => ({
 const ONCE: unique symbol = Symbol('ONCE');
 
 export abstract class ReadonlyEmitterBase<EventMap> implements ReadonlyEmitter<EventMap> {
-  protected readonly _log: typeof logger;
+  protected readonly _log: typeof debugLogger;
   protected readonly _listeners: Map<keyof EventMap | '*', [Function, number][]> = new Map();
 
   #listenersCounter = 0;
 
   constructor(name: string) {
-    this._log = logger.child({
+    this._log = debugLogger.child({
       cat: `emitter`,
       tid: [name, {}],
     });

@@ -10,7 +10,7 @@ import type {
   TestEnvironmentSyncEventMap,
   EnvironmentEventEmitter,
 } from './types';
-import { getHierarchy } from './utils';
+import { debugLogger, getHierarchy } from './utils';
 
 type EnvironmentEventEmitterImpl = SemiAsyncEmitter<
   TestEnvironmentAsyncEventMap,
@@ -42,9 +42,18 @@ export function onTestEnvironmentCreate(
     'error',
   ]);
 
+  const environmentConfig = normalizeJestEnvironmentConfig(jestEnvironmentConfig);
+  debugLogger.trace(
+    {
+      testPath: environmentContext.testPath,
+      environmentConfig,
+    },
+    'test_environment_create',
+  );
+
   contexts.set(jestEnvironment, {
     testEvents,
-    environmentConfig: normalizeJestEnvironmentConfig(jestEnvironmentConfig),
+    environmentConfig,
     environmentContext,
   });
 }
