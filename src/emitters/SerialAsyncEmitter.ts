@@ -1,4 +1,5 @@
 import type { AsyncEmitter } from './AsyncEmitter';
+import { logError } from './logError';
 import { ReadonlyEmitterBase } from './ReadonlyEmitterBase';
 import { __EMIT, __INVOKE } from './syncEmitterCommons';
 
@@ -18,11 +19,16 @@ export class SerialAsyncEmitter<EventMap>
 
   async #doEmit<K extends keyof EventMap>(eventType: K, event: EventMap[K]) {
     const listeners = [...this._getListeners(eventType)];
+    const $eventType = String(eventType);
 
-    await this._log.trace.complete(__EMIT(event), String(eventType), async () => {
+    await this._log.trace.complete(__EMIT(event), $eventType, async () => {
       if (listeners) {
         for (const listener of listeners) {
-          await this._log.trace.complete(__INVOKE(listener), 'invoke', () => listener(event));
+          try {
+            await this._log.trace.complete(__INVOKE(listener), 'invoke', () => listener(event));
+          } catch (error: unknown) {
+            logError(error, $eventType, listener);
+          }
         }
       }
     });

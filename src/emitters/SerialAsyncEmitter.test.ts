@@ -57,6 +57,16 @@ describe('SerialAsyncEmitter', () => {
     await emitter.emit('test', { type: 'test', payload: 42 });
     expect(listener2).toHaveBeenCalledTimes(1);
   });
+
+  it('should tolerate errors in listeners', async () => {
+    const emitter = new SerialAsyncEmitter<TestEventMap>('test-emitter');
+    const listener1 = jest.fn().mockRejectedValue(new Error('This listener failed'));
+    const listener2 = jest.fn();
+    emitter.once('test', listener1);
+    emitter.once('test', listener2);
+    await emitter.emit('test', { type: 'test', payload: 42 });
+    expect(listener2).toHaveBeenCalledTimes(1);
+  });
 });
 
 type TestEventMap = {

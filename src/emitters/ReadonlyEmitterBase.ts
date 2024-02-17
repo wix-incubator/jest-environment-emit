@@ -82,9 +82,9 @@ export abstract class ReadonlyEmitterBase<EventMap> implements ReadonlyEmitter<E
   #createOnceListener<K extends keyof EventMap>(type: K | '*', listener: Function) {
     const onceListener = ((event: Event) => {
       this.off(type, onceListener);
-      listener(event);
+      return listener(event);
     }) as Function & { [ONCE]?: true };
-
+    onceListener.toString = listener.toString.bind(listener);
     onceListener[ONCE] = true as const;
     return onceListener;
   }

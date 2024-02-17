@@ -59,6 +59,18 @@ describe('SerialSyncEmitter', () => {
     expect(listener2.mock.calls[0][0]).toEqual({ type: 'test', payload: 42 });
     expect(listener2.mock.calls[1][0]).toEqual({ type: 'test', payload: 84 });
   });
+
+  it('should tolerate errors in listeners', () => {
+    const emitter = new SerialSyncEmitter<TestEventMap>('test-emitter');
+    const listener1 = jest.fn(() => {
+      throw new Error('This listener failed');
+    });
+    const listener2 = jest.fn();
+    emitter.once('test', listener1);
+    emitter.once('test', listener2);
+    expect(() => emitter.emit('test', { type: 'test', payload: 42 })).not.toThrow();
+    expect(listener2).toHaveBeenCalledTimes(1);
+  });
 });
 
 type TestEventMap = {
