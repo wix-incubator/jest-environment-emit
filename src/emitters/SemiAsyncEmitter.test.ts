@@ -41,4 +41,27 @@ describe('SemiAsyncEmitter', () => {
     expect(listener).toHaveBeenCalledTimes(2);
     expect(listener).toHaveBeenCalledWith(84);
   });
+
+  describe('unhappy paths', () => {
+    describe('invalid type', () => {
+      test.each([['on'], ['once'], ['emit'], ['off']])('in emitter.%s(...)', (method) =>
+        // @ts-expect-error TS7053
+        expect(() => emitter[method]()).toThrow(/type must be a string/),
+      );
+    });
+
+    describe('invalid listener', () => {
+      test.each([['on'], ['once'], ['off']])('in emitter.%s(...)', (method) =>
+        // @ts-expect-error TS7053
+        expect(() => emitter[method]('*')).toThrow(/listener must be a function/),
+      );
+    });
+
+    describe('invalid order', () => {
+      test.each([['on'], ['once']])('in emitter.%s(...)', (method) =>
+        // @ts-expect-error TS7053
+        expect(() => emitter[method]('*', () => {}, '')).toThrow(/order must be a number/),
+      );
+    });
+  });
 });

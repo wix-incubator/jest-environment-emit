@@ -1,3 +1,4 @@
+import { assertFunction, assertNumber, assertString } from '../utils';
 import type { ReadonlyAsyncEmitter } from './AsyncEmitter';
 import type { ReadonlyEmitter } from './Emitter';
 import { SerialAsyncEmitter } from './SerialAsyncEmitter';
@@ -34,6 +35,10 @@ export class SemiAsyncEmitter<AsyncMap, SyncMap>
     listener: (event: any) => unknown,
     order?: number,
   ): this {
+    assertString(type, 'type');
+    assertFunction(listener, 'listener');
+    order !== undefined && assertNumber(order, 'order');
+
     return this.#invoke('on', type, listener, order);
   }
 
@@ -52,6 +57,10 @@ export class SemiAsyncEmitter<AsyncMap, SyncMap>
     listener: (event: any) => unknown,
     order?: number,
   ): this {
+    assertString(type, 'type');
+    assertFunction(listener, 'listener');
+    order !== undefined && assertNumber(order, 'order');
+
     return this.#invoke('once', type, listener, order);
   }
 
@@ -61,12 +70,17 @@ export class SemiAsyncEmitter<AsyncMap, SyncMap>
     type: K | '*',
     listener: (event: any) => unknown,
   ): this {
+    assertString(type, 'type');
+    assertFunction(listener, 'listener');
+
     return this.#invoke('off', type, listener);
   }
 
   emit<K extends keyof SyncMap>(type: K, event: SyncMap[K]): void;
   emit<K extends keyof AsyncMap>(type: K, event: AsyncMap[K]): Promise<void>;
   emit<K extends keyof (AsyncMap & SyncMap)>(type: K, event: any): void | Promise<void> {
+    assertString(type, 'type');
+
     return this.#syncEvents.has(type as keyof SyncMap)
       ? this.#syncEmitter.emit(type as keyof SyncMap, event)
       : this.#asyncEmitter.emit(type as keyof AsyncMap, event);
