@@ -2,12 +2,12 @@ export interface ReadonlyAsyncEmitter<EventMap> {
   on<K extends keyof EventMap>(
     type: K | '*',
     listener: (event: EventMap[K]) => void | Promise<void>,
-    weight?: number,
+    order?: number,
   ): this;
   once<K extends keyof EventMap>(
     type: K | '*',
     listener: (event: EventMap[K]) => void | Promise<void>,
-    weight?: number,
+    order?: number,
   ): this;
   off<K extends keyof EventMap>(
     type: K | '*',
