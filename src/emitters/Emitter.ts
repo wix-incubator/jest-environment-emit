@@ -2,12 +2,12 @@ export interface ReadonlyEmitter<EventMap> {
   on<K extends keyof EventMap>(
     type: K | '*',
     listener: (event: EventMap[K]) => unknown,
-    weight?: number,
+    order?: number,
   ): this;
   once<K extends keyof EventMap>(
     type: K | '*',
     listener: (event: EventMap[K]) => unknown,
-    weight?: number,
+    order?: number,
   ): this;
   off<K extends keyof EventMap>(type: K | '*', listener: (event: EventMap[K]) => unknown): this;
 }
