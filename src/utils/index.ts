@@ -1,4 +1,3 @@
-export * from './arraysEqual';
 export * from './assertions';
 export * from './getHierarchy';
 export * from './iterateSorted';
