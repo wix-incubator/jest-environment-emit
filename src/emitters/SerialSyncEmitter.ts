@@ -1,4 +1,5 @@
 import type { Emitter } from './Emitter';
+import { logError } from './logError';
 import { ReadonlyEmitterBase } from './ReadonlyEmitterBase';
 import { __EMIT, __ENQUEUE, __INVOKE } from './syncEmitterCommons';
 
@@ -24,11 +25,16 @@ export class SerialSyncEmitter<EventMap>
     while (this.#queue.length > 0) {
       const [eventType, event] = this.#queue[0];
       const listeners = [...this._getListeners(eventType)];
+      const $eventType = String(eventType);
 
-      this._log.trace.complete(__EMIT(event), String(eventType), () => {
+      this._log.trace.complete(__EMIT(event), $eventType, () => {
         if (listeners) {
           for (const listener of listeners) {
-            this._log.trace.complete(__INVOKE(listener), 'invoke', () => listener(event));
+            try {
+              this._log.trace.complete(__INVOKE(listener), 'invoke', () => listener(event));
+            } catch (error: unknown) {
+              logError(error, $eventType, listener);
+            }
           }
         }
       });

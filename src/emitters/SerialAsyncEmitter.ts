@@ -1,4 +1,5 @@
 import type { AsyncEmitter } from './AsyncEmitter';
+import { logError } from './logError';
 import { ReadonlyEmitterBase } from './ReadonlyEmitterBase';
 import { __EMIT, __INVOKE } from './syncEmitterCommons';
 
@@ -6,23 +7,40 @@ export class SerialAsyncEmitter<EventMap>
   extends ReadonlyEmitterBase<EventMap>
   implements AsyncEmitter<EventMap>
 {
-  #promise = Promise.resolve();
+  #idle?: Promise<void>;
+  readonly #tasks: Promise<void>[] = [];
 
   emit<K extends keyof EventMap>(eventType: K, event: EventMap[K]): Promise<void> {
-    return this.#enqueue(eventType, event);
+    this.#tasks.push(this.#doEmit(eventType, event));
+    this.#idle ??= this.#waitForIdle();
+    return this.#idle;
   }
 
-  #enqueue<K extends keyof EventMap>(eventType: K, event: EventMap[K]) {
-    return (this.#promise = this.#promise.then(() => this.#doEmit(eventType, event)));
+  async #waitForIdle() {
+    do {
+      const $promises = new Set(this.#tasks);
+      await Promise.all(this.#tasks);
+      for (let index = this.#tasks.length - 1; index >= 0; index--) {
+        if ($promises.has(this.#tasks[index])) {
+          this.#tasks.splice(index, 1);
+        }
+      }
+    } while (this.#tasks.length > 0);
+    this.#idle = undefined;
   }
 
   async #doEmit<K extends keyof EventMap>(eventType: K, event: EventMap[K]) {
     const listeners = [...this._getListeners(eventType)];
+    const $eventType = String(eventType);
 
-    await this._log.trace.complete(__EMIT(event), String(eventType), async () => {
+    await this._log.trace.complete(__EMIT(event), $eventType, async () => {
       if (listeners) {
         for (const listener of listeners) {
-          await this._log.trace.complete(__INVOKE(listener), 'invoke', () => listener(event));
+          try {
+            await this._log.trace.complete(__INVOKE(listener), 'invoke', () => listener(event));
+          } catch (error: unknown) {
+            logError(error, $eventType, listener);
+          }
         }
       }
     });
