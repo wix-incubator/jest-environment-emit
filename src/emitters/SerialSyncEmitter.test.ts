@@ -1,3 +1,4 @@
+jest.mock('./logError');
 import { SerialSyncEmitter } from './SerialSyncEmitter';
 
 describe('SerialSyncEmitter', () => {
@@ -61,15 +62,18 @@ describe('SerialSyncEmitter', () => {
   });
 
   it('should tolerate errors in listeners', () => {
+    const error = new Error('This listener failed');
     const emitter = new SerialSyncEmitter<TestEventMap>('test-emitter');
-    const listener1 = jest.fn(() => {
-      throw new Error('This listener failed');
-    });
+    const listener1 = () => {
+      throw error;
+    };
     const listener2 = jest.fn();
     emitter.once('test', listener1);
     emitter.once('test', listener2);
     expect(() => emitter.emit('test', { type: 'test', payload: 42 })).not.toThrow();
     expect(listener2).toHaveBeenCalledTimes(1);
+    const { logError } = jest.requireMock('./logError');
+    expect(logError).toHaveBeenCalledWith(error, 'test', expect.any(Function));
   });
 });
 

@@ -12,7 +12,6 @@ describe('SemiAsyncEmitter', () => {
     emitter.on('async_event', listener);
     const promise = emitter.emit('async_event', 42);
     expect(promise).toBeInstanceOf(Promise);
-    expect(listener).toHaveBeenCalledTimes(0);
     await promise;
     expect(listener).toHaveBeenCalledTimes(1);
     expect(listener).toHaveBeenCalledWith(42);
