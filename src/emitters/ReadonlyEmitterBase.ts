@@ -35,7 +35,7 @@ export abstract class ReadonlyEmitterBase<EventMap> implements ReadonlyEmitter<E
     order?: number,
   ): this {
     if (!listener[ONCE]) {
-      this._log.trace(__LISTENERS(listener), `on(${String(type)})`);
+      this._log.trace(__LISTENERS(listener), 'on(%s)', type);
     }
 
     if (!this._listeners.has(type)) {
@@ -50,7 +50,7 @@ export abstract class ReadonlyEmitterBase<EventMap> implements ReadonlyEmitter<E
   }
 
   once<K extends keyof EventMap>(type: K | '*', listener: Function, order?: number): this {
-    this._log.trace(__LISTENERS(listener), `once(${String(type)})`);
+    this._log.trace(__LISTENERS(listener), 'once(%s)', type);
     return this.on(type, this.#createOnceListener(type, listener), order);
   }
 
@@ -60,7 +60,7 @@ export abstract class ReadonlyEmitterBase<EventMap> implements ReadonlyEmitter<E
     _order?: number,
   ): this {
     if (!listener[ONCE]) {
-      this._log.trace(__LISTENERS(listener), `off(${String(type)})`);
+      this._log.trace(__LISTENERS(listener), 'off(%s)', type);
     }
 
     const listeners = this._listeners.get(type) || [];

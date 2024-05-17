@@ -1,9 +1,10 @@
 import { logger } from '../utils';
 
-// eslint-disable-next-line @typescript-eslint/ban-types
-export function logError(error: unknown, eventType: string, listener: Function) {
-  const errorDetails = (error instanceof Error && error.stack) || String(error);
+export function logError(error: unknown, eventType: unknown, listener: unknown) {
   logger.warn(
-    `Caught an error while emitting "${eventType}" event:\n${errorDetails}\nThe listener function was:\n${listener}`,
+    error,
+    `Caught an error while emitting %j event in a listener function:\n%s`,
+    eventType,
+    listener,
   );
 }

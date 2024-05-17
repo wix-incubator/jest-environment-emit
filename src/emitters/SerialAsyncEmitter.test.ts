@@ -1,3 +1,4 @@
+jest.mock('./logError');
 import { SerialAsyncEmitter } from './SerialAsyncEmitter';
 
 describe('SerialAsyncEmitter', () => {
@@ -50,22 +51,28 @@ describe('SerialAsyncEmitter', () => {
 
   it('should not delay emits within emits', async () => {
     const emitter = new SerialAsyncEmitter<TestEventMap>('test-emitter');
-    const listener1 = jest.fn(() => emitter.emit('test', { type: 'test', payload: 84 }));
+    const listener1 = jest.fn(() => {
+      emitter.emit('test', { type: 'test', payload: 84 });
+    });
     const listener2 = jest.fn();
     emitter.once('test', listener1);
     emitter.on('test', listener2);
     await emitter.emit('test', { type: 'test', payload: 42 });
-    expect(listener2).toHaveBeenCalledTimes(1);
+    expect(listener1).toHaveBeenCalledTimes(1);
+    expect(listener2).toHaveBeenCalledTimes(2);
   });
 
   it('should tolerate errors in listeners', async () => {
+    const error = new Error('This listener failed');
     const emitter = new SerialAsyncEmitter<TestEventMap>('test-emitter');
-    const listener1 = jest.fn().mockRejectedValue(new Error('This listener failed'));
+    const listener1 = () => Promise.reject(error);
     const listener2 = jest.fn();
     emitter.once('test', listener1);
     emitter.once('test', listener2);
     await emitter.emit('test', { type: 'test', payload: 42 });
     expect(listener2).toHaveBeenCalledTimes(1);
+    const { logError } = jest.requireMock('./logError');
+    expect(logError).toHaveBeenCalledWith(error, 'test', expect.any(Function));
   });
 });
 

@@ -1,3 +1,4 @@
+import { arraysEqual } from '../utils';
 import type { AsyncEmitter } from './AsyncEmitter';
 import { logError } from './logError';
 import { ReadonlyEmitterBase } from './ReadonlyEmitterBase';
@@ -7,14 +8,24 @@ export class SerialAsyncEmitter<EventMap>
   extends ReadonlyEmitterBase<EventMap>
   implements AsyncEmitter<EventMap>
 {
-  #promise = Promise.resolve();
+  #tasks: Promise<void>[] = [];
+  #idle?: Promise<void>;
 
   emit<K extends keyof EventMap>(eventType: K, event: EventMap[K]): Promise<void> {
-    return this.#enqueue(eventType, event);
+    this.#tasks.push(this.#doEmit(eventType, event));
+    this.#idle ??= this.#waitForIdle();
+    return this.#idle;
   }
 
-  #enqueue<K extends keyof EventMap>(eventType: K, event: EventMap[K]) {
-    return (this.#promise = this.#promise.then(() => this.#doEmit(eventType, event)));
+  async #waitForIdle() {
+    let $promises: Promise<void>[] = [];
+    while (!arraysEqual($promises, this.#tasks)) {
+      $promises = [...this.#tasks];
+      await Promise.all($promises);
+    }
+
+    this.#tasks.splice(0, this.#tasks.length);
+    this.#idle = undefined;
   }
 
   async #doEmit<K extends keyof EventMap>(eventType: K, event: EventMap[K]) {
