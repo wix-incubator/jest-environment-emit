@@ -13,8 +13,11 @@ on:
 jobs:
 
   sanity:
-    name: Sanity
+    name: Sanity (Jest ${{ matrix.jest-version }})
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        jest-version: [29, 30.0.0-beta.3]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -24,6 +27,8 @@ jobs:
         uses: bahmutov/npm-install@v1
         with:
           useLockFile: false
+      - name: Install Jest version
+        run: ./scripts/install-jest.sh ${{ matrix.jest-version }}
       - name: Lint
         run: npm run lint:ci
       - name: Unit Tests
