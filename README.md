@@ -157,3 +157,5 @@ module.exports = async () => {
 ```
 
 The logs, e.g. `jest-bunyamin.log` is a file viewable with [Perfetto](https://ui.perfetto.dev/) or `chrome://tracing`.
+
+> **Support Policy:** This package is officially tested on Jest 29 and 30.0.0-beta.3. Jest 27/28 may work, but are not guaranteed or tested. Use at your own risk for those versions.
